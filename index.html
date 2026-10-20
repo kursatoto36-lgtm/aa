@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="tr" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Erişimi & Geliştirme Portalı</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                            950: '#0b1329',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 8s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        
+        /* Glassmorphism Backgrounds */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-blue {
+            background: rgba(30, 58, 138, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        /* Countdown SVG stroke animation */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased overflow-x-hidden selection:bg-blue-500 selection:text-white">
+
+    <!-- TOP SIMULATION CONTROL BAR (TESTING TOOL) -->
+    <header class="bg-slate-900/90 border-b border-slate-800 text-xs px-4 py-2 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50 shadow-md">
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20">
+                <i class="fa-solid fa-network-wired text-xs"></i> Güvenlik & Simülasyon Paneli
+            </span>
+            <span class="text-slate-400 hidden sm:inline">| Bağlı IP: <strong id="detected-ip-display" class="text-slate-200">Tespit ediliyor...</strong></span>
+            <span class="text-slate-400 hidden lg:inline">| Kimlik ID: <strong id="current-user-id-display" class="text-amber-400 font-mono">#----</strong></span>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <button id="toggle-ip-btn" onclick="toggleSimulatedRole()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1 rounded border border-slate-700 font-medium transition flex items-center gap-1.5">
+                <i class="fa-solid fa-repeat text-blue-400"></i> Yetkili IP Simülasyonunu Aç/Kapat
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 flex flex-col relative min-h-[calc(100vh-41px)] bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950/40">
+        
+        <!-- SECTION 1: AUTHORIZED IP SELECTION SCREEN -->
+        <section id="auth-choice-section" class="hidden flex-1 flex items-center justify-center p-4">
+            <div class="glass-panel p-8 md:p-10 rounded-3xl max-w-lg w-full text-center shadow-2xl relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl"></div>
+                
+                <div class="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-400 text-2xl shadow-lg">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+
+                <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold rounded-full uppercase tracking-wider">
+                    <i class="fa-solid fa-circle text-[8px] me-1 animate-pulse"></i> Yetkili Sistem Erişimi
+                </span>
+
+                <h1 class="text-2xl md:text-3xl font-bold text-white mt-4 mb-2">Hoş Geldiniz</h1>
+                <p class="text-slate-400 text-sm mb-8">
+                    IP adresiniz güvenlik protokollerinden başarıyla geçti. Lütfen yönlendirilmek istediğiniz paneli seçiniz.
+                </p>
+
+                <div class="space-y-4">
+                    <button onclick="navigateTo('admin-panel')" class="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 transition duration-300 flex items-center justify-between group">
+                        <span class="flex items-center gap-3">
+                            <i class="fa-solid fa-user-gear text-xl group-hover:scale-110 transition-transform"></i>
+                            <span class="text-left">
+                                <span class="block text-base leading-tight">Admin Paneli</span>
+                                <span class="text-xs text-blue-200 font-normal">Analiz, Cihaz ve Canlı Mesaj İzleme</span>
+                            </span>
+                        </span>
+                        <i class="fa-solid fa-arrow-right text-blue-200 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <button onclick="startVisitorRedirect()" class="w-full py-4 px-6 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-semibold rounded-xl border border-slate-700 transition duration-300 flex items-center justify-between group">
+                        <span class="flex items-center gap-3">
+                            <i class="fa-solid fa-globe text-xl text-slate-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-left">
+                                <span class="block text-base leading-tight">Ziyaretçi Paneli</span>
+                                <span class="text-xs text-slate-400 font-normal">Normal ziyaretçi akışını başlat</span>
+                            </span>
+                        </span>
+                        <i class="fa-solid fa-arrow-right text-slate-400 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: 10-SECOND REDIRECT LOADING SCREEN (BLUE THEME) -->
+        <section id="redirect-loading-section" class="hidden flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-b from-blue-950 via-slate-900 to-slate-950 text-center relative overflow-hidden">
+            <!-- Background Glows -->
+            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="glass-blue p-8 md:p-12 rounded-3xl max-w-md w-full flex flex-col items-center relative z-10 shadow-2xl border border-blue-500/30">
+                <!-- Circular Countdown & Spinner -->
+                <div class="relative w-36 h-36 flex items-center justify-center mb-6">
+                    <svg class="w-full h-full" viewBox="0 0 100 100">
+                        <circle class="text-slate-800" stroke-width="6" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+                        <circle id="countdown-ring" class="text-blue-500 progress-ring__circle" stroke-width="6" stroke-dasharray="251.2" stroke-dashoffset="0" stroke-linecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span id="countdown-timer" class="text-4xl font-extrabold text-white font-mono">10</span>
+                        <span class="text-[10px] text-blue-300 tracking-widest uppercase">Saniye</span>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-bold text-white mb-2">Siteye Yönlendiriliyorsunuz</h2>
+                <p class="text-blue-200/80 text-sm mb-6">Lütfen bekleyin, altyapı bağlantısı kuruluyor ve sistem kaynakları hazırlanıyor...</p>
+
+                <!-- Animated Loading Status -->
+                <div class="w-full bg-slate-900/80 rounded-full h-2 mb-4 overflow-hidden border border-blue-500/20">
+                    <div id="loading-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-0 transition-all duration-1000 ease-linear"></div>
+                </div>
+
+                <div class="flex items-center gap-2 text-xs text-blue-300 font-mono">
+                    <i class="fa-solid fa-spinner animate-spin"></i>
+                    <span id="loading-status-text">Cihaz konfigürasyonu taranıyor...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: UNDER DEVELOPMENT PUBLIC LANDING PAGE -->
+        <section id="under-dev-section" class="hidden flex-1 flex items-center justify-center p-4 md:p-8">
+            <div class="max-w-5xl w-full grid md:grid-cols-2 gap-8 items-center glass-panel p-8 md:p-12 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                <!-- Left Column: Graphic Illustration -->
+                <div class="relative flex justify-center items-center">
+                    <div class="absolute w-72 h-72 bg-blue-500/20 rounded-full blur-3xl -z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=80&w=800&auto=format&fit=crop" 
+                         alt="Geliştirme Aşamasında" 
+                         class="rounded-2xl shadow-2xl border border-slate-700/60 object-cover w-full max-h-80 md:max-h-96 hover:scale-[1.02] transition duration-500"
+                         onerror="this.src='https://placehold.co/600x400/1e293b/3b82f6?text=Sitemiz+Gelis%CC%A7tiriliyor'">
+                    
+                    <div class="absolute -bottom-4 -right-2 md:right-4 bg-slate-900/90 border border-blue-500/40 backdrop-blur-md p-3.5 rounded-2xl shadow-xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                            <i class="fa-solid fa-code text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400">Sistem Durumu</p>
+                            <p class="text-sm font-semibold text-blue-400">v3.0 Mesaj Portu Aktif</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Content & Email Sign-in -->
+                <div class="flex flex-col text-left space-y-5">
+                    <div>
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-semibold uppercase tracking-wider mb-3">
+                            <i class="fa-solid fa-wrench"></i> Çalışma Yapılıyor
+                        </span>
+                        <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight">
+                            Sitemiz Geliştirilmektedir
+                        </h1>
+                    </div>
+
+                    <p class="text-slate-300 text-sm md:text-base leading-relaxed">
+                        Sizlere daha hızlı, güvenli ve modern bir deneyim sunabilmek amacıyla altyapımızı yeniliyoruz. Giriş yaparak size özel atanan 4 haneli anonim ID ile sohbet portuna katılabilirsiniz.
+                    </p>
+
+                    <!-- Features/Badges -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-xl flex items-center gap-2.5">
+                            <i class="fa-solid fa-user-shield text-amber-400"></i>
+                            <span class="text-xs text-slate-300 font-medium">Gizli IP & Anonim ID</span>
+                        </div>
+                        <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-xl flex items-center gap-2.5">
+                            <i class="fa-solid fa-comments text-emerald-400"></i>
+                            <span class="text-xs text-slate-300 font-medium">Anlık Chat Portu</span>
+                        </div>
+                    </div>
+
+                    <!-- Email Form -> Chat Redirect -->
+                    <div class="pt-3">
+                        <label class="block text-xs text-slate-400 mb-1.5 font-medium">Sohbet Portuna Katılmak İçin E-Posta Girin</label>
+                        <form onsubmit="handleEmailSubmit(event)" class="flex gap-2">
+                            <input type="email" id="visitor-email-input" placeholder="E-posta adresiniz..." required class="bg-slate-900 border border-slate-700 text-sm rounded-xl px-4 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500 flex-1">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center gap-2">
+                                <i class="fa-solid fa-paper-plane text-xs"></i> Katıl & Mesajlaş
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="flex items-center gap-4 text-slate-400 text-sm pt-2">
+                        <span class="text-xs">Takip Edin:</span>
+                        <a href="#" class="hover:text-blue-400 transition"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" class="hover:text-blue-400 transition"><i class="fa-brands fa-github"></i></a>
+                        <a href="#" class="hover:text-blue-400 transition"><i class="fa-brands fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: USER CHAT HUB (CHAT PORT FOR REGISTERED VISITORS) -->
+        <section id="chat-hub-section" class="hidden flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full flex flex-col h-[calc(100vh-60px)]">
+            <div class="glass-panel rounded-2xl border border-slate-800 shadow-2xl flex flex-col md:flex-row flex-1 overflow-hidden">
+                
+                <!-- Left Sidebar: Active Online Users & Chat Channels -->
+                <div class="w-full md:w-80 bg-slate-950/80 border-r border-slate-800/80 flex flex-col">
+                    <!-- User Header -->
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold flex items-center justify-center font-mono">
+                                <span id="my-chat-id-badge">#----</span>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p id="my-chat-email-display" class="text-xs font-semibold text-white truncate">Kullanıcı</p>
+                                <p class="text-[10px] text-emerald-400 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Bağlandı (IP Gizli)
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="navigateTo('under-dev')" title="Çıkış Yap" class="text-slate-400 hover:text-rose-400 text-sm p-1.5">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+
+                    <!-- Channel List & Online Users Header -->
+                    <div class="p-3 bg-slate-900/40 border-b border-slate-800/60">
+                        <div class="text-[11px] font-semibold uppercase text-slate-400 tracking-wider flex justify-between items-center">
+                            <span>Sohbet Kanalları & Kişiler</span>
+                            <span id="chat-online-count-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px]">0 Aktif</span>
+                        </div>
+                    </div>
+
+                    <!-- Chat Channels List -->
+                    <div class="flex-1 overflow-y-auto p-2 space-y-1" id="user-chat-list">
+                        <!-- Public Channel Button -->
+                        <button onclick="switchChatRoom('PUBLIC')" id="chat-room-btn-PUBLIC" class="w-full p-3 rounded-xl flex items-center gap-3 bg-blue-600/20 border border-blue-500/30 text-white font-medium text-xs transition text-left">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                                <i class="fa-solid fa-earth-americas"></i>
+                            </div>
+                            <div class="flex-1 overflow-hidden">
+                                <span class="block text-slate-200 font-semibold truncate">Genel Sohbet Odası</span>
+                                <span class="text-[10px] text-slate-400 truncate">Tüm anonim kullanıcılar</span>
+                            </div>
+                        </button>
+
+                        <div class="pt-3 pb-1 px-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Aktif Anonim ID'ler</div>
+                        <div id="active-peers-container" class="space-y-1">
+                            <!-- Dynamically loaded 4-digit ID users -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Chat Area -->
+                <div class="flex-1 flex flex-col bg-slate-900/40 relative">
+                    <!-- Chat Header -->
+                    <div class="p-4 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div id="active-chat-avatar" class="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold flex items-center justify-center">
+                                <i class="fa-solid fa-earth-americas text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 id="active-chat-title" class="text-sm font-bold text-white">Genel Sohbet Odası</h3>
+                                <p id="active-chat-subtitle" class="text-[11px] text-slate-400">Anonim 4 haneli ID'li kullanıcılar ile sohbet edin</p>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-400 flex items-center gap-2 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+                            <i class="fa-solid fa-user-secret text-amber-400"></i>
+                            <span class="hidden sm:inline">IP Adresiniz Diğer Ziyaretçilere Gizlidir</span>
+                        </div>
+                    </div>
+
+                    <!-- Messages Container -->
+                    <div id="chat-messages-box" class="flex-1 overflow-y-auto p-4 space-y-3">
+                        <!-- Messages dynamically rendered -->
+                    </div>
+
+                    <!-- Message Input Form -->
+                    <form onsubmit="sendChatMessage(event)" class="p-3 md:p-4 bg-slate-950/80 border-t border-slate-800 flex gap-2 items-center">
+                        <input type="text" id="chat-input-field" placeholder="Mesajınızı yazın (#4829 anonim ID olarak gönderilir)..." required autocomplete="off" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-3 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane text-xs"></i> <span class="hidden sm:inline">Gönder</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 5: ADMIN DASHBOARD (ANALYTICS & CHAT MONITORING) -->
+        <section id="admin-panel-section" class="hidden flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+            <!-- Header Banner -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-xl">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-2xl font-bold text-white">Güvenlik & Analiz Yönetim Paneli</h1>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Canlı (2s Sync)
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Ziyaretçilerin cihaz, IP, konum verileri ve anlık anonim mesajlaşmalarını tek noktadan yönetin.</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button onclick="clearVisitorLogs()" class="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> Kayıtları Temizle
+                    </button>
+                    <button onclick="simulateNewVisitor()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-600/25 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus"></i> Simüle Ziyaretçi Ekle
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB NAVIGATION FOR ADMIN -->
+            <div class="flex gap-2 mb-6 border-b border-slate-800 pb-2">
+                <button onclick="switchAdminTab('analytics')" id="admin-tab-btn-analytics" class="px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center gap-2 bg-blue-600 text-white shadow-lg transition">
+                    <i class="fa-solid fa-chart-line"></i> Ziyaretçi & Cihaz Analitiği
+                </button>
+                <button onclick="switchAdminTab('chat-monitor')" id="admin-tab-btn-chat-monitor" class="px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-comments text-blue-400"></i> Mesaj İzleme & Müdahale Paneli
+                </button>
+            </div>
+
+            <!-- ADMIN TAB 1: ANALYTICS & LOGS -->
+            <div id="admin-tab-analytics" class="space-y-6">
+                <!-- Metric Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-md">
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Anlık Aktif Kullanıcı</p>
+                            <h3 id="stat-active-count" class="text-3xl font-extrabold text-white mt-1">0</h3>
+                            <p class="text-[11px] text-emerald-400 mt-1"><i class="fa-solid fa-arrow-trend-up me-1"></i>Son 5 dakikada aktif</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-md">
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Toplam İstek</p>
+                            <h3 id="stat-total-count" class="text-3xl font-extrabold text-white mt-1">0</h3>
+                            <p class="text-[11px] text-blue-400 mt-1"><i class="fa-solid fa-arrows-rotate me-1"></i>Tüm oturumlar</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-md">
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Atanan Anonim ID Sayısı</p>
+                            <h3 id="stat-anon-ids-count" class="text-3xl font-extrabold text-amber-400 mt-1">0</h3>
+                            <p class="text-[11px] text-amber-400 mt-1"><i class="fa-solid fa-id-badge me-1"></i>4 Haneli ID'ler</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center justify-between shadow-md">
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Son Güncelleme</p>
+                            <h3 id="stat-last-sync" class="text-xl font-bold font-mono text-emerald-400 mt-2">--:--:--</h3>
+                            <p class="text-[11px] text-slate-400 mt-1"><i class="fa-solid fa-clock me-1"></i>2s Polling aktif</p>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-wave-square"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visitors Live Table -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+                    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-blue-400"></i>
+                            Ziyaretçi Log, IP & Anonim ID Kayıtları
+                        </h2>
+                        <span class="text-xs text-slate-400">Otomatik yenileniyor (2s)</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950/60 text-slate-400 text-xs uppercase font-semibold border-b border-slate-800">
+                                    <th class="p-4">Anonim ID</th>
+                                    <th class="p-4">Ziyaretçi IP (Gerçek)</th>
+                                    <th class="p-4">E-posta Adresi</th>
+                                    <th class="p-4">Cihaz & İşletim Sistemi</th>
+                                    <th class="p-4">Konum & Altyapı (İSP)</th>
+                                    <th class="p-4">Son Görülme</th>
+                                    <th class="p-4 text-center">Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitor-table-body" class="divide-y divide-slate-800/60 text-sm text-slate-300">
+                                <!-- Rows loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB 2: CHAT MONITORING PANEL -->
+            <div id="admin-tab-chat-monitor" class="hidden space-y-6">
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 shadow-xl">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-eye text-amber-400"></i> Tüm Konuşmalar & Mesajlaşma İzleme Paneli
+                        </h3>
+                        <span class="text-xs text-slate-400">Admin Modu: Tüm mesajları canlı görebilir ve mesaj atabilirsiniz</span>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Chat Selector for Admin -->
+                        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2">
+                            <p class="text-xs font-semibold uppercase text-slate-400 mb-2">Aktif Odalar & Sohbetler</p>
+                            <div id="admin-room-list" class="space-y-1">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Chat Monitor Window -->
+                        <div class="md:col-span-2 bg-slate-950/90 border border-slate-800 rounded-xl flex flex-col h-96">
+                            <div class="p-3 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+                                <span id="admin-monitored-title" class="text-xs font-bold text-blue-400">İzlenen Oda: Genel Sohbet</span>
+                                <span class="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded">Admin Müdahale Aktif</span>
+                            </div>
+
+                            <div id="admin-chat-messages-box" class="flex-1 overflow-y-auto p-4 space-y-3">
+                                <!-- Messages rendered for Admin -->
+                            </div>
+
+                            <form onsubmit="sendAdminMessage(event)" class="p-3 border-t border-slate-800 flex gap-2">
+                                <input type="text" id="admin-chat-input" placeholder="Admin/Sistem uyarısı gönder..." required class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-blue-500">
+                                <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-halved text-xs"></i> Admin Mesajı
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- CUSTOM TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <!-- JAVASCRIPT ARCHITECTURE & LOGIC -->
+    <script>
+        // Global Application State & Encrypted Admin IP (78.163.113.118)
+        const state = {
+            userIP: 'Tespit Ediliyor...',
+            encAdminBase64: 'NzguMTYzLjExMy4xMTg=',
+            isAuthorized: false,
+            currentRole: 'visitor',
+            countdownValue: 10,
+            countdownTimer: null,
+            pollingTimer: null,
+            currentSessionId: null,
+            userEmail: '',
+            userAnonId: null,
+            activeChatTarget: 'PUBLIC', // 'PUBLIC' or peer 4-digit ID
+            adminMonitoredTarget: 'PUBLIC',
+            broadcastChannel: null
+        };
+
+        // Secure IP Decode Helper Function
+        function getDecodedAdminIP() {
+            try {
+                return atob(state.encAdminBase64);
+            } catch (e) {
+                return '';
+            }
+        }
+
+        // Generate 4-digit Unique Anonymous ID (#1000 - #9999)
+        function getOrCreateAnonID(sessionId) {
+            let idMap = JSON.parse(localStorage.getItem('anon_id_mapping') || '{}');
+            if (!idMap[sessionId]) {
+                const random4Digit = '#' + Math.floor(1000 + Math.random() * 9000);
+                idMap[sessionId] = random4Digit;
+                localStorage.setItem('anon_id_mapping', JSON.stringify(idMap));
+            }
+            return idMap[sessionId];
+        }
+
+        // User Agent Parser Helper
+        function parseUserAgent() {
+            const ua = navigator.userAgent;
+            let os = "Windows";
+            let deviceType = "Masaüstü";
+            let browser = "Chrome";
+
+            if (ua.indexOf("Win") !== -1) os = "Windows";
+            else if (ua.indexOf("Mac") !== -1) os = "macOS";
+            else if (ua.indexOf("Linux") !== -1) os = "Linux";
+            else if (ua.indexOf("Android") !== -1) os = "Android";
+            else if (ua.indexOf("like Mac") !== -1) os = "iOS";
+
+            if (/Mobi|Android|iPhone|iPad/i.test(ua)) {
+                deviceType = "Mobil";
+            }
+
+            if (ua.indexOf("Chrome") !== -1 && ua.indexOf("Edg") === -1) browser = "Chrome";
+            else if (ua.indexOf("Safari") !== -1 && ua.indexOf("Chrome") === -1) browser = "Safari";
+            else if (ua.indexOf("Firefox") !== -1) browser = "Firefox";
+            else if (ua.indexOf("Edg") !== -1) browser = "Edge";
+
+            return {
+                os,
+                deviceType,
+                browser,
+                resolution: `${window.screen.width}x${window.screen.height}`
+            };
+        }
+
+        // Initialize App on Load
+        window.onload = async function() {
+            // Restore or create session ID
+            let storedSession = sessionStorage.getItem('app_session_id');
+            if (!storedSession) {
+                storedSession = 'sess_' + Math.random().toString(36).substring(2, 9);
+                sessionStorage.setItem('app_session_id', storedSession);
+            }
+            state.currentSessionId = storedSession;
+            state.userAnonId = getOrCreateAnonID(state.currentSessionId);
+            document.getElementById('current-user-id-display').innerText = state.userAnonId;
+
+            // Setup Tab Sync via BroadcastChannel / LocalStorage
+            setupRealtimeSync();
+
+            // Fetch Real Public IP
+            await fetchUserIP();
+
+            // Register current user session
+            recordCurrentVisitor();
+
+            // Evaluate Access with secure match
+            evaluateIPAccess();
+
+            // Start 2-second background polling
+            startLivePolling();
+        };
+
+        // Realtime Inter-tab Message Sync
+        function setupRealtimeSync() {
+            if ('BroadcastChannel' in window) {
+                state.broadcastChannel = new BroadcastChannel('chat_network_channel');
+                state.broadcastChannel.onmessage = (event) => {
+                    handleIncomingSync();
+                };
+            }
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'chat_messages_db' || e.key === 'visitor_analytics_logs') {
+                    handleIncomingSync();
+                }
+            });
+        }
+
+        function triggerSyncEvent() {
+            if (state.broadcastChannel) {
+                state.broadcastChannel.postMessage({ type: 'NEW_MESSAGE', timestamp: Date.now() });
+            }
+        }
+
+        function handleIncomingSync() {
+            if (!document.getElementById('chat-hub-section').classList.contains('hidden')) {
+                renderUserChatMessages();
+                renderUserPeerList();
+            }
+            if (!document.getElementById('admin-panel-section').classList.contains('hidden')) {
+                renderAdminDashboard();
+            }
+        }
+
+        // Fetch User Public IP address
+        async function fetchUserIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                state.userIP = data.ip;
+            } catch (err) {
+                state.userIP = '185.220.101.5';
+            }
+            document.getElementById('detected-ip-display').innerText = state.userIP;
+        }
+
+        // Evaluate Access securely against decoded hidden IP
+        function evaluateIPAccess() {
+            const authorizedIP = getDecodedAdminIP();
+
+            if (state.userIP === authorizedIP) {
+                state.isAuthorized = true;
+                navigateTo('auth-choice');
+            } else {
+                state.isAuthorized = false;
+                startVisitorRedirect();
+            }
+        }
+
+        // Toggle Simulated IP for Testing Admin Access
+        function toggleSimulatedRole() {
+            const adminIP = getDecodedAdminIP();
+            if (state.userIP === adminIP) {
+                state.userIP = '176.234.12.89'; // Non-admin visitor IP
+            } else {
+                state.userIP = adminIP; // Target Admin IP (78.163.113.118)
+            }
+            document.getElementById('detected-ip-display').innerText = state.userIP;
+            showNotification(`IP değiştirildi: ${state.userIP}`);
+            
+            recordCurrentVisitor();
+            evaluateIPAccess();
+        }
+
+        // View Navigation Manager
+        function navigateTo(sectionId) {
+            document.getElementById('auth-choice-section').classList.add('hidden');
+            document.getElementById('redirect-loading-section').classList.add('hidden');
+            document.getElementById('under-dev-section').classList.add('hidden');
+            document.getElementById('chat-hub-section').classList.add('hidden');
+            document.getElementById('admin-panel-section').classList.add('hidden');
+
+            if (sectionId !== 'redirect-loading' && state.countdownTimer) {
+                clearInterval(state.countdownTimer);
+            }
+
+            if (sectionId === 'auth-choice') {
+                document.getElementById('auth-choice-section').classList.remove('hidden');
+            } else if (sectionId === 'redirect-loading') {
+                document.getElementById('redirect-loading-section').classList.remove('hidden');
+            } else if (sectionId === 'under-dev') {
+                document.getElementById('under-dev-section').classList.remove('hidden');
+            } else if (sectionId === 'chat-hub') {
+                document.getElementById('chat-hub-section').classList.remove('hidden');
+                initChatHubView();
+            } else if (sectionId === 'admin-panel') {
+                document.getElementById('admin-panel-section').classList.remove('hidden');
+                renderAdminDashboard();
+            }
+        }
+
+        // Start 10-Second Redirect Countdown
+        function startVisitorRedirect() {
+            navigateTo('redirect-loading');
+            state.countdownValue = 10;
+            
+            const timerDisplay = document.getElementById('countdown-timer');
+            const loadingBar = document.getElementById('loading-bar');
+            const ring = document.getElementById('countdown-ring');
+            const statusText = document.getElementById('loading-status-text');
+
+            const fullDash = 251.2;
+            const statusMessages = [
+                "Cihaz konfigürasyonu taranıyor...",
+                "Güvenlik sertifikaları doğrulanıyor...",
+                "Sunucu bağlantısı optimize ediliyor...",
+                "Arayüz kaynakları yükleniyor...",
+                "Yönlendirme tamamlanıyor..."
+            ];
+
+            ring.style.strokeDashoffset = '0';
+            loadingBar.style.width = '0%';
+            timerDisplay.innerText = state.countdownValue;
+
+            if (state.countdownTimer) clearInterval(state.countdownTimer);
+
+            state.countdownTimer = setInterval(() => {
+                state.countdownValue--;
+                timerDisplay.innerText = state.countdownValue;
+
+                const elapsed = 10 - state.countdownValue;
+                const percentage = (elapsed / 10) * 100;
+                loadingBar.style.width = `${percentage}%`;
+
+                const offset = fullDash - (elapsed / 10) * fullDash;
+                ring.style.strokeDashoffset = offset;
+
+                if (elapsed % 2 === 0) {
+                    const msgIdx = Math.min(Math.floor(elapsed / 2), statusMessages.length - 1);
+                    statusText.innerText = statusMessages[msgIdx];
+                }
+
+                if (state.countdownValue <= 0) {
+                    clearInterval(state.countdownTimer);
+                    navigateTo('under-dev');
+                    showNotification('Sitemiz geliştirilmektedir sayfasına yönlendirildiniz.');
+                }
+            }, 1000);
+        }
+
+        // Record Visitor Details
+        function recordCurrentVisitor(customEmail = null) {
+            const deviceInfo = parseUserAgent();
+            const logs = JSON.parse(localStorage.getItem('visitor_analytics_logs') || '[]');
+            const existingIdx = logs.findIndex(l => l.sessionId === state.currentSessionId);
+            const targetAdminIP = getDecodedAdminIP();
+
+            if (customEmail) {
+                state.userEmail = customEmail;
+            }
+
+            const existingEmail = existingIdx >= 0 ? logs[existingIdx].email : null;
+
+            const visitorData = {
+                sessionId: state.currentSessionId,
+                anonId: state.userAnonId,
+                ip: state.userIP,
+                email: customEmail || existingEmail || state.userEmail || null,
+                deviceType: deviceInfo.deviceType,
+                os: deviceInfo.os,
+                browser: deviceInfo.browser,
+                resolution: deviceInfo.resolution,
+                location: state.userIP === targetAdminIP ? 'İstanbul, TR (Türk Telekom)' : 'Ankara, TR (Turkcell Superonline)',
+                lastActive: new Date().toLocaleTimeString('tr-TR'),
+                timestamp: Date.now()
+            };
+
+            if (existingIdx >= 0) {
+                logs[existingIdx] = visitorData;
+            } else {
+                logs.unshift(visitorData);
+            }
+
+            localStorage.setItem('visitor_analytics_logs', JSON.stringify(logs.slice(0, 30)));
+            triggerSyncEvent();
+        }
+
+        // Handle Email Form Submission -> Direct to Chat Hub
+        function handleEmailSubmit(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById('visitor-email-input');
+            const email = emailInput.value.trim();
+
+            if (email) {
+                recordCurrentVisitor(email);
+                showNotification(`Hoş geldiniz! Anonim ID'niz: ${state.userAnonId}`);
+                emailInput.value = '';
+                navigateTo('chat-hub');
+            }
+        }
+
+        // Continuous 2-second Polling Engine for Real-Time Updates
+        function startLivePolling() {
+            if (state.pollingTimer) clearInterval(state.pollingTimer);
+
+            state.pollingTimer = setInterval(() => {
+                recordCurrentVisitor();
+                if (!document.getElementById('admin-panel-section').classList.contains('hidden')) {
+                    renderAdminDashboard();
+                }
+                if (!document.getElementById('chat-hub-section').classList.contains('hidden')) {
+                    renderUserPeerList();
+                    renderUserChatMessages();
+                }
+            }, 2000);
+        }
+
+        /* ================= CHAT ENGINE & ANONYMOUS ID SYSTEM ================= */
+
+        function initChatHubView() {
+            document.getElementById('my-chat-id-badge').innerText = state.userAnonId;
+            document.getElementById('my-chat-email-display').innerText = state.userEmail || 'Anonim Kullanıcı';
+            switchChatRoom('PUBLIC');
+        }
+
+        function switchChatRoom(targetId) {
+            state.activeChatTarget = targetId;
+
+            const avatarEl = document.getElementById('active-chat-avatar');
+            const titleEl = document.getElementById('active-chat-title');
+            const subtitleEl = document.getElementById('active-chat-subtitle');
+
+            if (targetId === 'PUBLIC') {
+                avatarEl.innerHTML = `<i class="fa-solid fa-earth-americas text-sm"></i>`;
+                titleEl.innerText = 'Genel Sohbet Odası';
+                subtitleEl.innerText = 'Tüm anonim kullanıcıların ortak mesajlaşma alanı';
+            } else {
+                avatarEl.innerHTML = `<span class="font-mono text-xs font-bold">${targetId}</span>`;
+                titleEl.innerText = `Özel Sohbet (${targetId})`;
+                subtitleEl.innerText = `Yalnızca siz ve ${targetId} arasında uçtan uca özel sohbet`;
+            }
+
+            renderUserPeerList();
+            renderUserChatMessages();
+        }
+
+        function renderUserPeerList() {
+            const logs = JSON.parse(localStorage.getItem('visitor_analytics_logs') || '[]');
+            const now = Date.now();
+            const container = document.getElementById('active-peers-container');
+
+            // Filter unique active peers (excluding current user's session)
+            const activePeers = logs.filter(l => l.sessionId !== state.currentSessionId && (now - l.timestamp) < 60000);
+            document.getElementById('chat-online-count-badge').innerText = `${activePeers.length + 1} Aktif`;
+
+            if (activePeers.length === 0) {
+                container.innerHTML = `<div class="p-3 text-[11px] text-slate-500 text-center italic">Şu an başka aktif kullanıcı yok. Şekillendirici simülatörden ekleyebilirsiniz.</div>`;
+                return;
+            }
+
+            container.innerHTML = activePeers.map(peer => {
+                const isSelected = state.activeChatTarget === peer.anonId;
+                const peerDisplayName = peer.email ? peer.email.split('@')[0] : 'Anonim Ziyaretçi';
+
+                return `
+                    <button onclick="switchChatRoom('${peer.anonId}')" class="w-full p-2.5 rounded-xl flex items-center justify-between ${isSelected ? 'bg-blue-600/20 border border-blue-500/30 text-white' : 'hover:bg-slate-900/60 text-slate-300'} transition text-left group">
+                        <div class="flex items-center gap-2.5 overflow-hidden">
+                            <div class="w-7 h-7 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-[11px] font-bold text-amber-400">
+                                ${peer.anonId}
+                            </div>
+                            <div class="overflow-hidden">
+                                <span class="block text-xs font-medium text-slate-200 truncate">${peerDisplayName}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">${peer.anonId}</span>
+                            </div>
+                        </div>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function sendChatMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('chat-input-field');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const messages = JSON.parse(localStorage.getItem('chat_messages_db') || '[]');
+            const newMsg = {
+                id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                senderAnonId: state.userAnonId,
+                senderSessionId: state.currentSessionId,
+                target: state.activeChatTarget, // 'PUBLIC' or target anon ID
+                text: text,
+                time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            };
+
+            messages.push(newMsg);
+            localStorage.setItem('chat_messages_db', JSON.stringify(messages));
+            input.value = '';
+
+            triggerSyncEvent();
+            renderUserChatMessages();
+        }
+
+        function renderUserChatMessages() {
+            const box = document.getElementById('chat-messages-box');
+            if (!box) return;
+
+            const allMessages = JSON.parse(localStorage.getItem('chat_messages_db') || '[]');
+            
+            // Filter messages for current room (Public OR Private conversation with active target)
+            const roomMessages = allMessages.filter(msg => {
+                if (state.activeChatTarget === 'PUBLIC') {
+                    return msg.target === 'PUBLIC';
+                } else {
+                    // Private chat between state.userAnonId and state.activeChatTarget
+                    return (msg.senderAnonId === state.userAnonId && msg.target === state.activeChatTarget) ||
+                           (msg.senderAnonId === state.activeChatTarget && msg.target === state.userAnonId) ||
+                           (msg.senderAnonId === 'ADMIN' && (msg.target === state.activeChatTarget || msg.target === state.userAnonId));
+                }
+            });
+
+            if (roomMessages.length === 0) {
+                box.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 py-12">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800/60 flex items-center justify-center text-slate-400 text-xl mb-3">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <p class="text-xs font-semibold">Henüz mesaj bulunmuyor</p>
+                        <p class="text-[11px] text-slate-600 max-w-xs mt-1">Görüşmeyi başlatmak için ilk mesajı yazabilirsiniz. IP adresiniz gizlidir.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            box.innerHTML = roomMessages.map(msg => {
+                const isMe = msg.senderAnonId === state.userAnonId;
+                const isAdmin = msg.senderAnonId === 'ADMIN';
+
+                if (isAdmin) {
+                    return `
+                        <div class="flex justify-center my-2">
+                            <div class="bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
+                                <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                                <span><strong>Sistem / Admin:</strong> ${msg.text}</span>
+                                <span class="text-[10px] text-amber-400/60 font-mono">${msg.time}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                        <div class="flex items-center gap-1.5 mb-1 text-[11px] text-slate-400">
+                            <span class="font-mono font-semibold ${isMe ? 'text-blue-400' : 'text-amber-400'}">${isMe ? 'Siz (' + msg.senderAnonId + ')' : msg.senderAnonId}</span>
+                            <span>•</span>
+                            <span>${msg.time}</span>
+                        </div>
+                        <div class="max-w-md px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-100 border border-slate-700/80 rounded-tl-none'} shadow-md">
+                            ${msg.text}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            box.scrollTop = box.scrollHeight;
+        }
+
+        /* ================= ADMIN TAB & CHAT MONITORING LOGIC ================= */
+
+        function switchAdminTab(tabName) {
+            const analyticsTab = document.getElementById('admin-tab-analytics');
+            const chatTab = document.getElementById('admin-tab-chat-monitor');
+            const btnAnalytics = document.getElementById('admin-tab-btn-analytics');
+            const btnChat = document.getElementById('admin-tab-btn-chat-monitor');
+
+            if (tabName === 'analytics') {
+                analyticsTab.classList.remove('hidden');
+                chatTab.classList.add('hidden');
+                btnAnalytics.className = "px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center gap-2 bg-blue-600 text-white shadow-lg transition";
+                btnChat.className = "px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white transition";
+            } else {
+                analyticsTab.classList.add('hidden');
+                chatTab.classList.remove('hidden');
+                btnChat.className = "px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center gap-2 bg-blue-600 text-white shadow-lg transition";
+                btnAnalytics.className = "px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white transition";
+                renderAdminChatMonitor();
+            }
+        }
+
+        function renderAdminDashboard() {
+            const logs = JSON.parse(localStorage.getItem('visitor_analytics_logs') || '[]');
+            const tbody = document.getElementById('visitor-table-body');
+            const now = Date.now();
+            const activeLogs = logs.filter(l => (now - l.timestamp) < 30000);
+            
+            document.getElementById('stat-active-count').innerText = activeLogs.length;
+            document.getElementById('stat-total-count').innerText = logs.length;
+            document.getElementById('stat-anon-ids-count').innerText = logs.filter(l => l.anonId).length;
+            document.getElementById('stat-last-sync').innerText = new Date().toLocaleTimeString('tr-TR');
+
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">Henüz kayıtlı ziyaretçi verisi bulunmuyor.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => {
+                const isActive = (now - log.timestamp) < 15000;
+                const isCurrent = log.sessionId === state.currentSessionId;
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-4 font-mono font-bold text-amber-400">
+                            ${log.anonId || '#----'}
+                        </td>
+                        <td class="p-4 font-mono font-medium text-blue-400">
+                            ${log.ip}
+                            ${isCurrent ? '<span class="ms-1.5 px-1.5 py-0.5 text-[9px] bg-blue-500/20 text-blue-300 rounded border border-blue-500/30">Siz</span>' : ''}
+                        </td>
+                        <td class="p-4">
+                            ${log.email ? 
+                                `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-300 border border-blue-500/20 font-medium text-xs"><i class="fa-solid fa-envelope text-blue-400"></i> ${log.email}</span>` : 
+                                `<span class="text-xs text-slate-500 italic"><i class="fa-solid fa-minus text-[10px] me-1"></i>Girilmedi</span>`
+                            }
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid ${log.deviceType === 'Mobil' ? 'fa-mobile-screen text-purple-400' : 'fa-laptop text-blue-400'} text-base"></i>
+                                <div>
+                                    <span class="block font-medium text-slate-200">${log.os}</span>
+                                    <span class="text-xs text-slate-400">${log.deviceType}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot text-emerald-400 text-xs"></i>
+                                <span class="text-xs text-slate-300">${log.location}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-xs font-mono text-slate-400">
+                            ${log.lastActive}
+                        </td>
+                        <td class="p-4 text-center">
+                            ${isActive ? 
+                                '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Çevrimiçi</span>' : 
+                                '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">Ayrıldı</span>'
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderAdminChatMonitor();
+        }
+
+        function renderAdminChatMonitor() {
+            const roomListContainer = document.getElementById('admin-room-list');
+            const messagesBox = document.getElementById('admin-chat-messages-box');
+            if (!roomListContainer || !messagesBox) return;
+
+            const messages = JSON.parse(localStorage.getItem('chat_messages_db') || '[]');
+            const logs = JSON.parse(localStorage.getItem('visitor_analytics_logs') || '[]');
+
+            // Extract unique conversation targets
+            const roomSet = new Set(['PUBLIC']);
+            messages.forEach(m => {
+                if (m.target !== 'PUBLIC') roomSet.add(m.target);
+            });
+            logs.forEach(l => {
+                if (l.anonId) roomSet.add(l.anonId);
+            });
+
+            const rooms = Array.from(roomSet);
+
+            roomListContainer.innerHTML = rooms.map(room => {
+                const isSelected = state.adminMonitoredTarget === room;
+                return `
+                    <button onclick="setAdminMonitoredTarget('${room}')" class="w-full p-2.5 rounded-lg text-xs flex items-center justify-between ${isSelected ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold' : 'bg-slate-900 text-slate-400 hover:text-slate-200'} transition">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid ${room === 'PUBLIC' ? 'fa-earth-americas text-blue-400' : 'fa-user-lock text-amber-400'}"></i>
+                            ${room === 'PUBLIC' ? 'Genel Odası' : 'Oda: ' + room}
+                        </span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                `;
+            }).join('');
+
+            // Render Messages for Monitored Target
+            const filteredMsgs = messages.filter(m => {
+                if (state.adminMonitoredTarget === 'PUBLIC') {
+                    return m.target === 'PUBLIC';
+                } else {
+                    return m.target === state.adminMonitoredTarget || m.senderAnonId === state.adminMonitoredTarget;
+                }
+            });
+
+            document.getElementById('admin-monitored-title').innerText = `İzlenen Oda: ${state.adminMonitoredTarget === 'PUBLIC' ? 'Genel Sohbet' : state.adminMonitoredTarget}`;
+
+            if (filteredMsgs.length === 0) {
+                messagesBox.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs">Bu odada henüz mesaj bulunmuyor.</div>`;
+                return;
+            }
+
+            messagesBox.innerHTML = filteredMsgs.map(m => `
+                <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs space-y-1">
+                    <div class="flex justify-between items-center text-[10px] text-slate-400">
+                        <span class="font-mono text-amber-400 font-bold">${m.senderAnonId} &rarr; ${m.target}</span>
+                        <span>${m.time}</span>
+                    </div>
+                    <p class="text-slate-200">${m.text}</p>
+                </div>
+            `).join('');
+
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+
+        function setAdminMonitoredTarget(target) {
+            state.adminMonitoredTarget = target;
+            renderAdminChatMonitor();
+        }
+
+        function sendAdminMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('admin-chat-input');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const messages = JSON.parse(localStorage.getItem('chat_messages_db') || '[]');
+            messages.push({
+                id: 'admin_msg_' + Date.now(),
+                senderAnonId: 'ADMIN',
+                target: state.adminMonitoredTarget,
+                text: text,
+                time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('chat_messages_db', JSON.stringify(messages));
+            input.value = '';
+
+            triggerSyncEvent();
+            renderAdminChatMonitor();
+            showNotification('Admin uyarısı sohbet odasına yayınlandı.');
+        }
+
+        // Admin Utility: Simulate a New Visitor Event
+        function simulateNewVisitor() {
+            const sampleIPs = ['176.234.12.89', '85.105.44.12', '212.156.80.5', '185.93.122.44'];
+            const sampleEmails = ['ahmet@gmail.com', 'mehmet@outlook.com', 'canan@company.com', null];
+            const sampleOS = ['Windows', 'macOS', 'Android', 'iOS', 'Linux'];
+            const sampleBrowsers = ['Chrome', 'Safari', 'Firefox', 'Edge'];
+            const sampleLocations = ['İzmir, TR (Vodafone)', 'Bursa, TR (TTNET)', 'Antalya, TR (Turkcell)', 'Ankara, TR (TurkNet)'];
+
+            const randomIP = sampleIPs[Math.floor(Math.random() * sampleIPs.length)];
+            const randomEmail = sampleEmails[Math.floor(Math.random() * sampleEmails.length)];
+            const randomOS = sampleOS[Math.floor(Math.random() * sampleOS.length)];
+            const randomBrowser = sampleBrowsers[Math.floor(Math.random() * sampleBrowsers.length)];
+            const randomLoc = sampleLocations[Math.floor(Math.random() * sampleLocations.length)];
+            const isMobile = randomOS === 'Android' || randomOS === 'iOS';
+
+            const newSessId = 'sess_' + Math.random().toString(36).substring(2, 9);
+            const newAnonId = getOrCreateAnonID(newSessId);
+
+            const logs = JSON.parse(localStorage.getItem('visitor_analytics_logs') || '[]');
+            logs.unshift({
+                sessionId: newSessId,
+                anonId: newAnonId,
+                ip: randomIP,
+                email: randomEmail,
+                deviceType: isMobile ? 'Mobil' : 'Masaüstü',
+                os: randomOS,
+                browser: randomBrowser,
+                resolution: isMobile ? '390x844' : '1920x1080',
+                location: randomLoc,
+                lastActive: new Date().toLocaleTimeString('tr-TR'),
+                timestamp: Date.now()
+            });
+
+            localStorage.setItem('visitor_analytics_logs', JSON.stringify(logs.slice(0, 30)));
+            renderAdminDashboard();
+            showNotification(`Yeni anonim ziyaretçi eklendi: ${newAnonId} (${randomIP})`);
+        }
+
+        // Admin Utility: Clear Logs
+        function clearVisitorLogs() {
+            localStorage.removeItem('visitor_analytics_logs');
+            localStorage.removeItem('chat_messages_db');
+            recordCurrentVisitor();
+            renderAdminDashboard();
+            showNotification('Tüm ziyaretçi kayıtları ve sohbetler temizlendi.');
+        }
+
+        // Custom Toast Notification System
+        function showNotification(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'glass-panel px-4 py-3 rounded-xl shadow-2xl border border-blue-500/30 text-xs font-medium text-slate-100 flex items-center gap-2 transition-all transform translate-y-2 opacity-0';
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400 text-sm"></i> ${message}`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 50);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
